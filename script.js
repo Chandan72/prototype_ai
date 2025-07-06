@@ -20,21 +20,25 @@ document.addEventListener('DOMContentLoaded', function() {
         navMenu.classList.remove('active');
     }
 
-    // Smooth scrolling for anchor links
+    // Smooth scrolling for anchor links (only for same-page anchors)
     const links = document.querySelectorAll('a[href^="#"]');
     for (const link of links) {
         link.addEventListener('click', clickHandler);
     }
 
     function clickHandler(e) {
-        e.preventDefault();
         const href = this.getAttribute('href');
-        const offsetTop = document.querySelector(href).offsetTop - 70;
-
-        scroll({
-            top: offsetTop,
-            behavior: 'smooth'
-        });
+        const target = document.querySelector(href);
+        
+        // Only prevent default and smooth scroll if target exists on current page
+        if (target) {
+            e.preventDefault();
+            const offsetTop = target.offsetTop - 70;
+            scroll({
+                top: offsetTop,
+                behavior: 'smooth'
+            });
+        }
     }
 
     // Navbar scroll effect
@@ -51,7 +55,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Contact form handling
     const contactForm = document.querySelector('.contact-form');
-    contactForm.addEventListener('submit', handleSubmit);
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleSubmit);
+    }
 
     function handleSubmit(e) {
         e.preventDefault();
@@ -358,4 +364,138 @@ document.addEventListener('DOMContentLoaded', function() {
         this.style.transform = window.pageYOffset > 300 ? 
             'translateY(0)' : 'translateY(100px)';
     });
+
+    // FAQ Functionality
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question');
+        question.addEventListener('click', function() {
+            const isActive = item.classList.contains('active');
+            
+            // Close all other FAQ items
+            faqItems.forEach(otherItem => {
+                otherItem.classList.remove('active');
+            });
+            
+            // Toggle current item
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        });
+    });
+
+    // FAQ Category Navigation
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    const faqCategories = document.querySelectorAll('.faq-category');
+
+    categoryBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetCategory = this.getAttribute('data-category');
+            
+            // Update active button
+            categoryBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show target category
+            faqCategories.forEach(category => {
+                category.classList.remove('active');
+                if (category.id === targetCategory) {
+                    category.classList.add('active');
+                }
+            });
+        });
+    });
+
+    // Update active navigation link based on current page
+    function updateActiveNavLink() {
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const linkPage = link.getAttribute('href');
+            
+            // Check if this is the current page
+            if (linkPage === currentPage || 
+                (currentPage === '' && linkPage === 'index.html') ||
+                (currentPage === 'index.html' && linkPage === 'index.html')) {
+                link.classList.add('active');
+            }
+        });
+    }
+
+    // Call on page load
+    updateActiveNavLink();
+
+    // Enhanced form validation for contact page
+    const formInputs = document.querySelectorAll('.form-group input, .form-group select, .form-group textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+
+        input.addEventListener('input', function() {
+            // Reset border color on input
+            if (this.style.borderColor === 'rgb(239, 68, 68)') {
+                this.style.borderColor = '#e5e7eb';
+            }
+        });
+    });
+
+    function validateField(field) {
+        const value = field.value.trim();
+        const isRequired = field.hasAttribute('required');
+        
+        if (isRequired && !value) {
+            field.style.borderColor = '#ef4444';
+            return false;
+        }
+        
+        if (field.type === 'email' && value && !isValidEmail(value)) {
+            field.style.borderColor = '#ef4444';
+            return false;
+        }
+        
+        field.style.borderColor = '#10b981';
+        return true;
+    }
+
+    // Animate elements on page load for all pages
+    const allAnimatedElements = document.querySelectorAll('.service-card, .feature-card, .team-member, .testimonial-card, .benefit-card, .step');
+    allAnimatedElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            el.style.transition = 'all 0.6s ease';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    // Services page specific functionality
+    const serviceLinks = document.querySelectorAll('.service-link');
+    serviceLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            const target = document.querySelector(href);
+            
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Add enhanced loading animation for better UX
+    const pageContent = document.querySelector('body');
+    pageContent.style.opacity = '0';
+    pageContent.style.transition = 'opacity 0.3s ease';
+    
+    setTimeout(() => {
+        pageContent.style.opacity = '1';
+    }, 100);
 });
