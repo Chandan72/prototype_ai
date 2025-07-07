@@ -3,15 +3,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add loading screen animation
     createLoadingScreen();
     
-    // Mobile Navigation Toggle
+    // Mobile Navigation Toggle with Accessibility
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
 
     hamburger.addEventListener('click', mobileMenu);
 
     function mobileMenu() {
+        const isActive = hamburger.classList.contains('active');
+        
         hamburger.classList.toggle('active');
         navMenu.classList.toggle('active');
+        
+        // Update aria-expanded for accessibility
+        hamburger.setAttribute('aria-expanded', !isActive);
     }
 
     // Close mobile menu when clicking on a link
@@ -21,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeMenu() {
         hamburger.classList.remove('active');
         navMenu.classList.remove('active');
+        hamburger.setAttribute('aria-expanded', 'false');
     }
 
     // Enhanced smooth scrolling for anchor links
@@ -356,19 +362,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Enhanced counter animation with easing
     function animateCounters() {
-        const counters = document.querySelectorAll('.stat h3');
+        const counters = document.querySelectorAll('.stat h3[data-target]');
         
         counters.forEach(counter => {
-            const target = parseInt(counter.getAttribute('data-target') || counter.textContent.replace(/\D/g, ''));
+            const target = parseInt(counter.getAttribute('data-target'));
             const suffix = counter.textContent.replace(/\d/g, '');
             
             let current = 0;
             const increment = target / 60; // 60 frames for smooth animation
+            const duration = 2000; // 2 seconds
+            const startTime = performance.now();
             
-            const updateCount = () => {
-                current += increment;
-                if (current < target) {
-                    counter.textContent = Math.ceil(current) + suffix;
+            const updateCount = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function for smooth animation
+                const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                current = target * easeOutCubic;
+                
+                counter.textContent = Math.floor(current) + suffix;
+                
+                if (progress < 1) {
                     requestAnimationFrame(updateCount);
                 } else {
                     counter.textContent = target + suffix;
@@ -376,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             counter.textContent = '0' + suffix;
-            updateCount();
+            requestAnimationFrame(updateCount);
         });
     }
 
